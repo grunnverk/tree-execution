@@ -51,3 +51,7 @@ export { SimpleMutex } from './util/mutex.js';
 
 export { CheckpointManager } from './util/checkpointManager.js';
 
+// Tree orchestration
+export { execute as executeTree } from './tree.js';
+export { __resetGlobalState as resetTreeGlobalState } from './tree.js';
+

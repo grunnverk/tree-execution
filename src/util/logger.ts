@@ -7,6 +7,7 @@ export interface Logger {
     warn(message: string, ...args: any[]): void;
     verbose(message: string, ...args: any[]): void;
     debug(message: string, ...args: any[]): void;
+    silly(message: string, ...args: any[]): void;
 }
 
 let logger: Logger = {
@@ -14,7 +15,8 @@ let logger: Logger = {
     error: (...args) => console.error(...args),
     warn: (...args) => console.warn(...args),
     verbose: () => {},
-    debug: () => {}
+    debug: () => {},
+    silly: () => {} // Most verbose level, disabled by default
 };
 
 export function setLogger(newLogger: Logger): void {
