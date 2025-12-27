@@ -8,4 +8,5 @@ coverage/
 *.tgz
 .kodrdriv-parallel-context.json
 .kodrdriv-parallel-context.json.lock
+output/
 
