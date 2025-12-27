@@ -7,18 +7,18 @@ export interface TreeExecutionConfig {
     verbose?: boolean;
     debug?: boolean;
     overrides?: boolean;
-    
+
     // AI/Model configuration
     model?: string;
     openaiReasoning?: 'low' | 'medium' | 'high';
     openaiMaxOutputTokens?: number;
-    
+
     // Directories
     contextDirectories?: string[];
     outputDirectory?: string;
     preferencesDirectory?: string;
     configDirectory?: string;
-    
+
     // Tree-specific configuration
     tree?: {
         directories?: string[];
@@ -63,7 +63,7 @@ export interface TreeExecutionConfig {
         auditBranches?: boolean;
         validateState?: boolean;
     };
-    
+
     // Command-specific configurations
     commit?: {
         add?: boolean;
@@ -86,7 +86,7 @@ export interface TreeExecutionConfig {
         toolTimeout?: number;
         selfReflection?: boolean;
     };
-    
+
     release?: {
         from?: string;
         to?: string;
@@ -105,7 +105,7 @@ export interface TreeExecutionConfig {
         maxAgenticIterations?: number;
         selfReflection?: boolean;
     };
-    
+
     publish?: {
         mergeMethod?: 'merge' | 'squash' | 'rebase';
         from?: string;
@@ -131,14 +131,14 @@ export interface TreeExecutionConfig {
         skipPrePublishMerge?: boolean;
         updateDeps?: string;
     };
-    
+
     link?: {
         scopeRoots?: Record<string, string>;
         dryRun?: boolean;
         packageArgument?: string;
         externals?: string[];
     };
-    
+
     unlink?: {
         scopeRoots?: Record<string, string>;
         workspaceFile?: string;
@@ -147,7 +147,7 @@ export interface TreeExecutionConfig {
         packageArgument?: string;
         externals?: string[];
     };
-    
+
     development?: {
         targetVersion?: string;
         noMilestones?: boolean;
@@ -155,15 +155,15 @@ export interface TreeExecutionConfig {
         createRetroactiveTags?: boolean;
         workingTagPrefix?: string;
     };
-    
+
     updates?: {
         scope?: string;
         directories?: string[];
         interProject?: boolean;
     };
-    
+
     excludedPatterns?: string[];
-    
+
     // Stop context configuration
     stopContext?: {
         enabled?: boolean;
@@ -177,7 +177,7 @@ export interface TreeExecutionConfig {
         replacement?: string;
         warnOnFilter?: boolean;
     };
-    
+
     // Branches configuration
     branches?: Record<string, {
         targetBranch?: string;
@@ -189,7 +189,7 @@ export interface TreeExecutionConfig {
             tag?: string;
         };
     }>;
-    
+
     // Additional properties
     traits?: any; // For cardigantime compatibility
 }
