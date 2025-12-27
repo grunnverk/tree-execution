@@ -54,7 +54,7 @@ describe('treeUtils', () => {
             const timer = new PerformanceTimer('test');
             await new Promise(resolve => setTimeout(resolve, 50));
             const duration = timer.end();
-            
+
             expect(duration).toBeGreaterThanOrEqual(40); // Allow some variance
             expect(duration).toBeLessThan(200);
         });
@@ -63,7 +63,7 @@ describe('treeUtils', () => {
             const timer = new PerformanceTimer('test');
             await new Promise(resolve => setTimeout(resolve, 50));
             const duration = timer.getDuration();
-            
+
             expect(duration).toBeGreaterThanOrEqual(40);
             expect(duration).toBeLessThan(200);
         });
@@ -71,11 +71,11 @@ describe('treeUtils', () => {
         it('should continue tracking after getDuration', async () => {
             const timer = new PerformanceTimer('test');
             await new Promise(resolve => setTimeout(resolve, 30));
-            
+
             const duration1 = timer.getDuration();
             await new Promise(resolve => setTimeout(resolve, 30));
             const duration2 = timer.getDuration();
-            
+
             expect(duration2).toBeGreaterThan(duration1);
         });
 
@@ -83,7 +83,7 @@ describe('treeUtils', () => {
             const timer = new PerformanceTimer('test');
             await new Promise(resolve => setTimeout(resolve, 30));
             const duration = timer.end();
-            
+
             expect(duration).toBeGreaterThanOrEqual(20);
         });
     });
@@ -134,7 +134,7 @@ describe('treeUtils', () => {
     describe('optimizePrecommitCommand', () => {
         it('should return optimization result', async () => {
             const result = await optimizePrecommitCommand('/path/to/package', 'npm run precommit');
-            
+
             expect(result).toBeDefined();
             expect(result.optimizedCommand).toBe('npm run precommit');
             expect(result.skipped).toBeDefined();
@@ -143,7 +143,7 @@ describe('treeUtils', () => {
 
         it('should return stub result with no optimizations', async () => {
             const result = await optimizePrecommitCommand('/path', 'npm test');
-            
+
             expect(result.skipped).toEqual({});
             expect(result.reasons).toEqual({});
         });
@@ -151,7 +151,7 @@ describe('treeUtils', () => {
         it('should preserve command', async () => {
             const command = 'npm run test -- --coverage';
             const result = await optimizePrecommitCommand('/path', command);
-            
+
             expect(result.optimizedCommand).toBe(command);
         });
     });

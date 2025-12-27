@@ -2,7 +2,7 @@ import { getLogger } from '../util/logger.js';
 import type { DependencyGraph } from '@eldrforge/tree-core';
 import { findAllDependents } from '@eldrforge/tree-core';
 import type { ParallelExecutionCheckpoint, FailedPackageSnapshot, RecoveryHint } from '../types/index.js';
-import { CheckpointManager } from '../util/checkpointManager.js';
+import { CheckpointManager } from '../checkpoint/index.js';
 import * as path from 'path';
 
 export interface ValidationResult {

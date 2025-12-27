@@ -145,21 +145,21 @@ describe('SimpleMutex', () => {
 
         it('should reject new lock attempts after destroy', async () => {
             mutex.destroy();
-            
+
             await expect(mutex.lock()).rejects.toThrow('Mutex has been destroyed');
         });
 
         it('should clear queue on destroy', async () => {
             await mutex.lock();
-            
+
             // Add some waiting operations
             const p1 = mutex.lock();
             const p2 = mutex.lock();
-            
+
             expect(mutex.getQueueLength()).toBe(2);
-            
+
             mutex.destroy();
-            
+
             expect(mutex.getQueueLength()).toBe(0);
         });
     });

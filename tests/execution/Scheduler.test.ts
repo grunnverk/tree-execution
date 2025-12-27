@@ -110,7 +110,7 @@ describe('Scheduler', () => {
             };
 
             const next = scheduler.getNext(1, state);
-            
+
             // C should be prioritized because it has dependents
             expect(next).toHaveLength(1);
             expect(next[0]).toBe('C');
@@ -147,7 +147,7 @@ describe('Scheduler', () => {
             };
 
             const next = scheduler.getNext(2, state);
-            
+
             // C should come before D
             expect(next[0]).toBe('C');
             expect(next[1]).toBe('D');
@@ -273,7 +273,7 @@ describe('Scheduler', () => {
             };
 
             const next = diamondScheduler.getNext(1, state);
-            
+
             // D should be scheduled first (unlocks both B and C)
             expect(next).toEqual(['D']);
         });

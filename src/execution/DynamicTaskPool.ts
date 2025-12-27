@@ -12,7 +12,7 @@ import type {
     ExecutionMetrics,
     FailedPackageSnapshot
 } from '../types/index.js';
-import { CheckpointManager } from '../util/checkpointManager.js';
+import { CheckpointManager } from '../checkpoint/index.js';
 import { DependencyChecker } from './DependencyChecker.js';
 import { ResourceMonitor } from './ResourceMonitor.js';
 import { Scheduler } from './Scheduler.js';

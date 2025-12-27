@@ -49,7 +49,7 @@ export type { Logger } from './util/logger.js';
 
 export { SimpleMutex } from './util/mutex.js';
 
-export { CheckpointManager } from './util/checkpointManager.js';
+export { CheckpointManager } from './checkpoint/index.js';
 
 // Tree orchestration
 export { execute as executeTree } from './tree.js';

@@ -38,7 +38,7 @@ describe('ResourceMonitor', () => {
             monitor.allocate();
             monitor.allocate();
             expect(monitor.getAvailableSlots()).toBe(0);
-            
+
             // Try to allocate when full
             const result = monitor.allocate();
             expect(result).toBe(false);
@@ -68,7 +68,7 @@ describe('ResourceMonitor', () => {
             monitor.allocate();
             monitor.allocate();
             monitor.allocate();
-            
+
             const metrics = monitor.getMetrics();
             expect(metrics.peakConcurrency).toBe(3);
         });
@@ -78,7 +78,7 @@ describe('ResourceMonitor', () => {
             monitor.release();
             monitor.allocate();
             monitor.allocate();
-            
+
             const metrics = monitor.getMetrics();
             expect(metrics.totalAllocations).toBe(3);
         });
@@ -87,7 +87,7 @@ describe('ResourceMonitor', () => {
             monitor.allocate();
             monitor.allocate();
             monitor.release();
-            
+
             const metrics = monitor.getMetrics();
             expect(metrics.totalReleases).toBe(1);
         });
@@ -98,7 +98,7 @@ describe('ResourceMonitor', () => {
             monitor.allocate();
             monitor.release();
             monitor.allocate();
-            
+
             const metrics = monitor.getMetrics();
             expect(metrics.averageConcurrency).toBeGreaterThan(0);
         });
@@ -133,11 +133,11 @@ describe('ResourceMonitor', () => {
 
         it('should track utilization percentage', () => {
             expect(monitor.getUtilization()).toBe(0);
-            
+
             monitor.allocate();
             monitor.allocate();
             expect(monitor.getUtilization()).toBe(50);
-            
+
             monitor.allocate();
             monitor.allocate();
             expect(monitor.getUtilization()).toBe(100);
@@ -150,7 +150,7 @@ describe('ResourceMonitor', () => {
                 monitor.allocate();
                 monitor.release();
             }
-            
+
             expect(monitor.getAvailableSlots()).toBe(4);
             const metrics = monitor.getMetrics();
             expect(metrics.totalAllocations).toBe(100);
@@ -186,11 +186,11 @@ describe('ResourceMonitor', () => {
         it('should handle single concurrency', () => {
             const singleMonitor = new ResourceMonitor(1);
             expect(singleMonitor.getAvailableSlots()).toBe(1);
-            
+
             singleMonitor.allocate();
             expect(singleMonitor.canAllocate()).toBe(false);
             expect(singleMonitor.isFullyUtilized()).toBe(true);
-            
+
             singleMonitor.release();
             expect(singleMonitor.canAllocate()).toBe(true);
             expect(singleMonitor.isIdle()).toBe(true);
@@ -199,11 +199,11 @@ describe('ResourceMonitor', () => {
         it('should handle large concurrency', () => {
             const largeMonitor = new ResourceMonitor(1000);
             expect(largeMonitor.getAvailableSlots()).toBe(1000);
-            
+
             for (let i = 0; i < 500; i++) {
                 largeMonitor.allocate();
             }
-            
+
             expect(largeMonitor.getAvailableSlots()).toBe(500);
         });
     });

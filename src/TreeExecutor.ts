@@ -1,6 +1,6 @@
 /**
  * TreeExecutor - Class-based tree command orchestration
- * 
+ *
  * Refactored from tree.ts to use instance state instead of global state
  * and dependency injection for commands.
  */
@@ -56,7 +56,7 @@ export interface TreeExecutorOptions {
      * Command registry for dependency injection
      */
     commands?: CommandRegistry;
-    
+
     /**
      * Custom logger (optional)
      */
@@ -65,7 +65,7 @@ export interface TreeExecutorOptions {
 
 /**
  * TreeExecutor - Orchestrates tree command execution
- * 
+ *
  * This class encapsulates all state that was previously global,
  * making it testable and allowing multiple concurrent executions.
  */
@@ -74,17 +74,17 @@ export class TreeExecutor {
     private publishedVersions: PublishedVersion[] = [];
     private executionContext: TreeExecutionContext | null = null;
     private stateMutex: SimpleMutex;
-    
+
     // Dependency injection
     private commands: CommandRegistry;
     private logger: any;
-    
+
     constructor(options: TreeExecutorOptions = {}) {
         this.commands = options.commands || {};
         this.logger = options.logger;
         this.stateMutex = new SimpleMutex();
     }
-    
+
     /**
      * Get published versions (thread-safe)
      */
@@ -93,7 +93,7 @@ export class TreeExecutor {
             return [...this.publishedVersions];
         });
     }
-    
+
     /**
      * Add published version (thread-safe)
      */
@@ -102,7 +102,7 @@ export class TreeExecutor {
             this.publishedVersions.push(version);
         });
     }
-    
+
     /**
      * Get execution context (thread-safe)
      * Returns a deep copy to prevent external modifications
@@ -110,7 +110,7 @@ export class TreeExecutor {
     async getExecutionContext(): Promise<TreeExecutionContext | null> {
         return await this.stateMutex.runExclusive(async () => {
             if (!this.executionContext) return null;
-            
+
             // Return deep copy to prevent external modification
             return {
                 ...this.executionContext,
@@ -120,7 +120,7 @@ export class TreeExecutor {
             };
         });
     }
-    
+
     /**
      * Set execution context (thread-safe)
      */
@@ -129,7 +129,7 @@ export class TreeExecutor {
             this.executionContext = context;
         });
     }
-    
+
     /**
      * Reset state (for testing)
      */
@@ -139,13 +139,13 @@ export class TreeExecutor {
             this.executionContext = null;
         });
     }
-    
+
     /**
      * Execute tree command
-     * 
+     *
      * This will be the main entry point, delegating to the execute function
      * from tree.ts but with instance state instead of global state.
-     * 
+     *
      * @param config - Tree execution configuration
      * @returns Result message
      */
@@ -153,19 +153,19 @@ export class TreeExecutor {
         // Import the execute function from tree.ts
         // We'll need to refactor tree.ts to accept TreeExecutor instance
         const { execute } = await import('./tree.js');
-        
+
         // For now, this is a placeholder
         // We'll refactor tree.ts to accept TreeExecutor in the next step
         return await execute(config);
     }
-    
+
     /**
      * Get command executor
      */
     getCommand(name: keyof CommandRegistry): CommandExecutor | undefined {
         return this.commands[name];
     }
-    
+
     /**
      * Set command executor (for testing/injection)
      */

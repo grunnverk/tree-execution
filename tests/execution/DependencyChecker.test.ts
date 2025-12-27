@@ -118,7 +118,7 @@ describe('DependencyChecker', () => {
         it('should return higher depth for dependent packages', () => {
             const depthA = checker.getDepth('A');
             const depthC = checker.getDepth('C');
-            
+
             // A depends on B which depends on C, so A should have higher depth
             expect(depthA).toBeGreaterThan(depthC);
         });

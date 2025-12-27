@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { getLogger } from './logger.js';
+import { getLogger } from '../util/logger.js';
 import type { ParallelExecutionCheckpoint } from '../types/index.js';
 import { createStorage } from '@eldrforge/shared';
 

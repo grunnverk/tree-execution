@@ -89,7 +89,7 @@ export class SimpleMutex {
     getQueueLength(): number {
         return this.queue.length;
     }
-    
+
     /**
      * Run a function with exclusive access (convenience method)
      * Automatically acquires and releases the lock
