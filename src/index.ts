@@ -55,3 +55,14 @@ export { CheckpointManager } from './util/checkpointManager.js';
 export { execute as executeTree } from './tree.js';
 export { __resetGlobalState as resetTreeGlobalState } from './tree.js';
 
+// TreeExecutor class (new class-based API)
+export { TreeExecutor, createTreeExecutor } from './TreeExecutor.js';
+export type {
+    TreeExecutionContext,
+    CommandExecutor,
+    CommandRegistry,
+    TreeExecutorOptions
+} from './TreeExecutor.js';
+
+// Note: PublishedVersion is already exported from './types/index.js'
+

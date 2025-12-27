@@ -4,6 +4,7 @@
  */
 
 import type { TreeExecutionConfig } from '../types/config.js';
+import type { CommandExecutor } from '../TreeExecutor.js';
 import { getLogger } from './logger.js';
 
 const logger = getLogger();
@@ -11,7 +12,7 @@ const logger = getLogger();
 /**
  * Updates command stub
  */
-export const Updates = {
+export const Updates: CommandExecutor = {
     async execute(config: TreeExecutionConfig): Promise<void> {
         logger.warn('Updates command not implemented in tree-execution - this should be injected by kodrdriv');
         // Stub - no-op
@@ -22,7 +23,7 @@ export const Updates = {
 /**
  * Commit command stub
  */
-export const Commit = {
+export const Commit: CommandExecutor = {
     async execute(config: TreeExecutionConfig): Promise<void> {
         logger.warn('Commit command not implemented in tree-execution - this should be injected by kodrdriv');
         // Stub - no-op
@@ -33,7 +34,7 @@ export const Commit = {
 /**
  * Link command stub
  */
-export const Link = {
+export const Link: CommandExecutor = {
     async execute(config: TreeExecutionConfig, mode?: string): Promise<any> {
         logger.warn('Link command not implemented in tree-execution - this should be injected by kodrdriv');
         // Stub - return empty result
@@ -45,7 +46,7 @@ export const Link = {
 /**
  * Unlink command stub
  */
-export const Unlink = {
+export const Unlink: CommandExecutor = {
     async execute(config: TreeExecutionConfig, mode?: string): Promise<any> {
         logger.warn('Unlink command not implemented in tree-execution - this should be injected by kodrdriv');
         // Stub - return empty result

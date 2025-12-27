@@ -9,10 +9,10 @@ import type { TreeExecutionConfig } from '../types/config.js';
  * Get output path - can accept config or directory string
  */
 export function getOutputPath(configOrDir: TreeExecutionConfig | string, filename?: string): string {
-    const baseDir = typeof configOrDir === 'string' 
-        ? configOrDir 
+    const baseDir = typeof configOrDir === 'string'
+        ? configOrDir
         : (configOrDir.outputDirectory || 'output/kodrdriv');
-    
+
     return filename ? `${baseDir}/${filename}` : baseDir;
 }
 
@@ -22,17 +22,17 @@ export function getOutputPath(configOrDir: TreeExecutionConfig | string, filenam
 export class PerformanceTimer {
     private startTime: number;
     private label: string;
-    
+
     constructor(label: string) {
         this.label = label;
         this.startTime = Date.now();
     }
-    
+
     end(): number {
         const duration = Date.now() - this.startTime;
         return duration;
     }
-    
+
     getDuration(): number {
         return Date.now() - this.startTime;
     }
@@ -45,7 +45,7 @@ export async function isInGitRepository(dir: string): Promise<boolean> {
     // Simple check - could be enhanced
     const fs = await import('fs/promises');
     const path = await import('path');
-    
+
     try {
         await fs.access(path.join(dir, '.git'));
         return true;
