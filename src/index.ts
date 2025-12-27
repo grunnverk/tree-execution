@@ -27,7 +27,7 @@ export type { TreeExecutionConfig } from './types/config.js';
 export { DynamicTaskPool } from './execution/DynamicTaskPool.js';
 export type { PoolConfig } from './execution/DynamicTaskPool.js';
 
-export { RecoveryManager } from './execution/RecoveryManager.js';
+export { RecoveryManager, loadRecoveryManager } from './execution/RecoveryManager.js';
 export type { ValidationResult as RecoveryValidationResult, RecoveryOptions } from './execution/RecoveryManager.js';
 
 export { Scheduler } from './execution/Scheduler.js';
@@ -40,7 +40,11 @@ export { DependencyChecker } from './execution/DependencyChecker.js';
 export { CommandValidator } from './execution/CommandValidator.js';
 export type { ValidationResult as CommandValidationResult } from './execution/CommandValidator.js';
 
-export { TreeExecutionAdapter } from './execution/TreeExecutionAdapter.js';
+export {
+    TreeExecutionAdapter,
+    createParallelProgressLogger,
+    formatParallelResult
+} from './execution/TreeExecutionAdapter.js';
 export type { ExecutePackageFunction } from './execution/TreeExecutionAdapter.js';
 
 // Utilities
