@@ -6,7 +6,6 @@
  */
 
 import type { TreeExecutionConfig } from './types/config.js';
-import type { DependencyGraph, PackageInfo } from '@eldrforge/tree-core';
 import { SimpleMutex } from './util/mutex.js';
 
 /**

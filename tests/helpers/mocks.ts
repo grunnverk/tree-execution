@@ -7,7 +7,7 @@ import type { ParallelExecutionCheckpoint, TreeExecutionConfig, ExecutionState }
 
 /**
  * Create a mock dependency graph from a simple structure
- * 
+ *
  * @example
  * createMockGraph({
  *   'a': [],
@@ -53,7 +53,7 @@ export function createMockGraph(structure: Record<string, string[]>): Dependency
  */
 export function createMockCheckpoint(overrides: Partial<ParallelExecutionCheckpoint> = {}): ParallelExecutionCheckpoint {
     const now = new Date().toISOString();
-    
+
     return {
         version: '1.0',
         executionId: 'test-exec-id',

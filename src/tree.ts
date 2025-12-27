@@ -1315,7 +1315,7 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
             issuesFound: 0,
             goodPackages: 0
         });
-        const formatAuditResults = (results: any) => 'Branch audit not implemented';
+        const formatAuditResults = (_results: any) => 'Branch audit not implemented';
         const { getRemoteDefaultBranch } = await import('@eldrforge/git-tools');
 
         // For publish workflows, check branch consistency, merge conflicts, and existing PRs

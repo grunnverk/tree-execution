@@ -17,14 +17,20 @@ const compat = new FlatCompat({
 });
 
 export default defineConfig([
-    globalIgnores([
-        "dist/**",
-        "docs/**",
-        "node_modules/**",
-        "**/*.test.ts",
-        "temp-dist/**",
-        "scripts/**",
-    ]),
+    {
+        ignores: [
+            "dist/**",
+            "docs/**",
+            "node_modules/**",
+            "**/*.test.ts",
+            "tests/**",
+            "temp-dist/**",
+            "scripts/**",
+            "coverage/**",
+            "output/**",
+            "src/util/logger.ts" // Logger needs console
+        ]
+    },
     {
         extends: compat.extends("eslint:recommended", "plugin:@typescript-eslint/recommended"),
 
@@ -46,23 +52,18 @@ export default defineConfig([
         rules: {
             "@typescript-eslint/no-explicit-any": "off",
             "@typescript-eslint/explicit-function-return-type": "off",
+            "no-console": "off", // Allow console statements
 
             "@typescript-eslint/no-unused-vars": ["warn", {
                 argsIgnorePattern: "^_",
+                varsIgnorePattern: "^_",
             }],
 
             indent: ["warn", 4, {
                 SwitchCase: 1,
             }],
 
-            "import/extensions": ["error", "never", {
-                ignorePackages: true,
-                pattern: {
-                    "js": "never",
-                    "ts": "never",
-                    "d": "always"
-                }
-            }],
+            "import/extensions": "off", // Allow .js extensions for ESM
 
             "import/no-extraneous-dependencies": ["error", {
                 devDependencies: true,
