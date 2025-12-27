@@ -48,7 +48,7 @@ describe('CheckpointManager', () => {
         it('should return true when checkpoint exists', async () => {
             // Create a checkpoint file
             await fs.writeFile(checkpointPath, JSON.stringify({ version: '1.0' }));
-            
+
             // Check via storage
             const exists = await manager['storage'].exists(checkpointPath);
             expect(exists).toBe(true);
