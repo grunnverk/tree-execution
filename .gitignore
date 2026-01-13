@@ -12,3 +12,4 @@ coverage/
 .kodrdriv-parallel-context.json.lock
 output/
 
+package-lock.json
