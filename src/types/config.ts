@@ -63,6 +63,8 @@ export interface TreeExecutionConfig {
         statusParallel?: boolean;
         auditBranches?: boolean;
         validateState?: boolean;
+        // Callback for when focusing on a package (useful for progress tracking)
+        onPackageFocus?: (packageName: string, index: number, total: number) => void | Promise<void>;
     };
 
     // Command-specific configurations
