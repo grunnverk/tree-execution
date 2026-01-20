@@ -28,6 +28,7 @@ export interface TreeExecutionConfig {
         cmd?: string;
         builtInCommand?: string;
         continue?: boolean;
+        cleanup?: boolean;
         status?: boolean;
         promote?: string;
         packageArgument?: string;
