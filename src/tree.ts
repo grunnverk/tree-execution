@@ -82,9 +82,21 @@ interface TreeExecutionContext {
     originalConfig: TreeExecutionConfig;
     publishedVersions: PublishedVersion[];
     completedPackages: string[];
+    failedPackages: Array<{
+        name: string;
+        error: string;
+        phase: string;
+    }>;
     buildOrder: string[];
     startTime: Date;
     lastUpdateTime: Date;
+    lastSuccessfulPackage?: string;
+    pendingDependencyUpdates?: Array<{
+        package: string;
+        dependency: string;
+        fromVersion: string;
+        toVersion: string;
+    }>;
 }
 
 // Global state to track published versions during tree execution - protected by mutex
@@ -294,7 +306,10 @@ const saveExecutionContext = async (context: TreeExecutionContext, outputDirecto
             publishedVersions: context.publishedVersions.map(v => ({
                 ...v,
                 publishTime: v.publishTime.toISOString()
-            }))
+            })),
+            failedPackages: context.failedPackages || [],
+            lastSuccessfulPackage: context.lastSuccessfulPackage,
+            pendingDependencyUpdates: context.pendingDependencyUpdates || []
         };
 
         await storage.writeFile(contextFilePath, JSON.stringify(contextData, null, 2), 'utf-8');
@@ -326,7 +341,10 @@ const loadExecutionContext = async (outputDirectory?: string): Promise<TreeExecu
             publishedVersions: contextData.publishedVersions.map((v: any) => ({
                 ...v,
                 publishTime: new Date(v.publishTime)
-            }))
+            })),
+            failedPackages: contextData.failedPackages || [],
+            lastSuccessfulPackage: contextData.lastSuccessfulPackage,
+            pendingDependencyUpdates: contextData.pendingDependencyUpdates || []
         };
     } catch (error: any) {
         const logger = getLogger();
@@ -1918,10 +1936,12 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
                 BOLD: '\x1b[1m'
             };
 
-            // Check if terminal supports ANSI
+            // Check if terminal supports ANSI (and we're not in MCP server mode)
+            // In MCP mode, all stdout must be valid JSON-RPC, so disable progress display
             const supportsAnsi = process.stdout.isTTY &&
                                   process.env.TERM !== 'dumb' &&
-                                  !process.env.NO_COLOR;
+                                  !process.env.NO_COLOR &&
+                                  process.env.KODRDRIV_MCP_SERVER !== 'true';
 
             const totalPackages = buildOrder.length;
             const concurrency = 5; // Process up to 5 packages at a time
@@ -2567,6 +2587,51 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
             // Create set of all package names for inter-project dependency detection
             const allPackageNames = new Set(Array.from(dependencyGraph.packages.keys()));
 
+            // Handle cleanup flag - remove checkpoint and start fresh
+            if (runConfig.tree?.cleanup) {
+                logger.info('TREE_CLEANUP: Cleaning up failed state | Action: Remove checkpoint | Purpose: Start fresh execution');
+                await cleanupContext(runConfig.outputDirectory);
+                executionContext = null;
+                publishedVersions = [];
+                logger.info('TREE_CLEANUP_COMPLETE: Checkpoint removed successfully | Status: Ready for fresh execution');
+            }
+
+            // Handle continue flag - resume from checkpoint
+            if (runConfig.tree?.continue && !executionContext) {
+                logger.info('TREE_RESUME: Attempting to resume from checkpoint | Action: Load execution context | Purpose: Continue from failure point');
+
+                const loadedContext = await loadExecutionContext(runConfig.outputDirectory);
+
+                if (!loadedContext) {
+                    const contextFilePath = getContextFilePath(runConfig.outputDirectory);
+                    logger.error('TREE_RESUME_FAILED: No checkpoint found to resume from | Expected: ' + contextFilePath + ' | Status: checkpoint-missing');
+                    logger.error('');
+                    logger.error('RECOVERY_OPTIONS: Available options to proceed:');
+                    logger.error('   Option 1: Run without --continue to start fresh execution');
+                    logger.error('   Option 2: Check if checkpoint file exists: ' + contextFilePath);
+                    logger.error('');
+                    throw new Error('No checkpoint found to resume from. Use --cleanup to start fresh or run without --continue.');
+                }
+
+                executionContext = loadedContext;
+                publishedVersions = loadedContext.publishedVersions;
+
+                logger.info(`TREE_RESUME_SUCCESS: Resumed from checkpoint | Completed: ${executionContext.completedPackages.length} packages | Remaining: ${buildOrder.length - executionContext.completedPackages.length} packages | Total: ${buildOrder.length}`);
+
+                if (executionContext.lastSuccessfulPackage) {
+                    logger.info(`TREE_RESUME_LAST: Last successful package: ${executionContext.lastSuccessfulPackage}`);
+                }
+
+                if (executionContext.failedPackages && executionContext.failedPackages.length > 0) {
+                    logger.warn('TREE_RESUME_FAILURES: Previous failures detected | Count: ' + executionContext.failedPackages.length);
+                    executionContext.failedPackages.forEach((failure, idx) => {
+                        logger.warn(`  ${idx + 1}. ${failure.name}: ${failure.error} (Phase: ${failure.phase})`);
+                    });
+                    logger.warn('');
+                    logger.warn('ACTION_REQUIRED: Ensure issues are fixed before continuing | Purpose: Avoid repeated failures');
+                }
+            }
+
             // Initialize execution context if not continuing
             if (!executionContext) {
                 executionContext = {
@@ -2574,6 +2639,7 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
                     originalConfig: runConfig,
                     publishedVersions: [],
                     completedPackages: [],
+                    failedPackages: [],
                     buildOrder: buildOrder,
                     startTime: new Date(),
                     lastUpdateTime: new Date()
@@ -2742,6 +2808,7 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
                     if (executionContext && isBuiltInCommand && (builtInCommand === 'publish' || builtInCommand === 'run') && !isDryRun) {
                         executionContext.completedPackages.push(packageName);
                         executionContext.publishedVersions = publishedVersions;
+                        executionContext.lastSuccessfulPackage = packageName;
                         executionContext.lastUpdateTime = new Date();
                         await saveExecutionContext(executionContext, runConfig.outputDirectory);
                     }
@@ -2754,6 +2821,17 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
                 } else {
                     failedPackage = packageName;
                     const formattedError = formatSubprojectError(packageName, result.error, packageInfo, i + 1, buildOrder.length);
+
+                    // Record failure in context
+                    if (executionContext && isBuiltInCommand && (builtInCommand === 'publish' || builtInCommand === 'run') && !isDryRun) {
+                        executionContext.failedPackages.push({
+                            name: packageName,
+                            error: result.error || 'Unknown error',
+                            phase: 'execution'
+                        });
+                        executionContext.lastUpdateTime = new Date();
+                        await saveExecutionContext(executionContext, runConfig.outputDirectory);
+                    }
 
                     if (!isDryRun) {
                         packageLogger.error(`Execution failed`);

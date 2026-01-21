@@ -1,6 +1,6 @@
 {
   "name": "@eldrforge/tree-execution",
-  "version": "0.1.8",
+  "version": "1.0.0",
   "description": "Parallel execution framework and tree orchestration for monorepo workflows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,8 +35,8 @@
   },
   "homepage": "https://github.com/grunnverk/tree-execution#readme",
   "dependencies": {
-    "@eldrforge/tree-core": "^0.1.8",
-    "@eldrforge/git-tools": "^0.1.22",
+    "@eldrforge/tree-core": "^1.0.0",
+    "@eldrforge/git-tools": "^1.0.0",
     "@eldrforge/shared": "^0.1.10"
   },
   "devDependencies": {

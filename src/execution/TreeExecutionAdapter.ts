@@ -63,6 +63,23 @@ export class TreeExecutionAdapter {
             // Increment started count and use it as index for progress display
             const currentIndex = this.startedCount++;
 
+            // Call onPackageFocus callback if provided
+            if (this.config.config.tree?.onPackageFocus) {
+                try {
+                    await Promise.resolve(
+                        this.config.config.tree.onPackageFocus(
+                            packageName,
+                            currentIndex,
+                            this.config.graph.packages.size
+                        )
+                    );
+                } catch (error: any) {
+                    // Log but don't fail execution if callback errors
+                    const logger = getLogger();
+                    logger.warn(`onPackageFocus callback failed for ${packageName}: ${error.message}`);
+                }
+            }
+
             // Call tree.ts executePackage
             const startTime = Date.now();
             const result = await this.executePackageFn(
