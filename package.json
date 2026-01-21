@@ -1,6 +1,6 @@
 {
   "name": "@eldrforge/tree-execution",
-  "version": "1.0.0-dev.0",
+  "version": "1.0.0",
   "description": "Parallel execution framework and tree orchestration for monorepo workflows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
