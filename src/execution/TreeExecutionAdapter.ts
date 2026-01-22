@@ -1,5 +1,5 @@
 import { DynamicTaskPool, PoolConfig } from './DynamicTaskPool.js';
-import type { PackageInfo } from '@eldrforge/tree-core';
+import type { PackageInfo } from '@grunnverk/tree-core';
 import type { TreeExecutionConfig } from '../types/config.js';
 import type { PackageResult } from '../types/index.js';
 import { getLogger } from '../util/logger.js';

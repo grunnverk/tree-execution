@@ -17,9 +17,9 @@
 - `util`
 
 **External Packages (Already Published)**:
-- `@eldrforge/git-tools` - run, runSecure, safeJsonParse, validatePackageJson, getGitStatusSummary, getGloballyLinkedPackages, getLinkedDependencies, getLinkCompatibilityProblems
-- `@eldrforge/shared` - createStorage
-- `@eldrforge/tree-core` - scanForPackageJsonFiles, parsePackageJson, buildDependencyGraph, topologicalSort, shouldExclude, PackageInfo, DependencyGraph
+- `@grunnverk/git-tools` - run, runSecure, safeJsonParse, validatePackageJson, getGitStatusSummary, getGloballyLinkedPackages, getLinkedDependencies, getLinkCompatibilityProblems
+- `@grunnverk/shared` - createStorage
+- `@grunnverk/tree-core` - scanForPackageJsonFiles, parsePackageJson, buildDependencyGraph, topologicalSort, shouldExclude, PackageInfo, DependencyGraph
 
 ---
 
@@ -42,7 +42,7 @@
 
 ### 4. Dependency Graph
 **Current**: `import { ... } from '../util/dependencyGraph';`
-**Replace with**: `import { ... } from '@eldrforge/tree-core';`
+**Replace with**: `import { ... } from '@grunnverk/tree-core';`
 **Status**: ✅ Already extracted to tree-core
 
 ---
@@ -121,7 +121,7 @@ const DEFAULT_OUTPUT_DIRECTORY = 'output/kodrdriv';
 1. ✅ Change `../logging` → `./util/logger.js`
 2. ✅ Change `../types` (Config) → `./types/config.js`
 3. ✅ Change `../util/mutex` → `./util/mutex.js`
-4. ✅ Change `../util/dependencyGraph` → `@eldrforge/tree-core`
+4. ✅ Change `../util/dependencyGraph` → `@grunnverk/tree-core`
 
 ### Phase 2: Handle Complex Dependencies
 1. Remove built-in command imports → Use callback pattern

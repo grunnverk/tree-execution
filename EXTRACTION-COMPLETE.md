@@ -158,9 +158,9 @@ const result = await pool.execute();
 ```json
 {
   "dependencies": {
-    "@eldrforge/tree-core": "^0.1.0",
-    "@eldrforge/git-tools": "^0.1.6",
-    "@eldrforge/shared": "^0.1.0"
+    "@grunnverk/tree-core": "^0.1.0",
+    "@grunnverk/git-tools": "^0.1.6",
+    "@grunnverk/shared": "^0.1.0"
   }
 }
 ```

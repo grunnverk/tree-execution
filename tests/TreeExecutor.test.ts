@@ -34,7 +34,7 @@ describe('TreeExecutor', () => {
 
         it('should add published version', async () => {
             const version: PublishedVersion = {
-                packageName: '@eldrforge/test',
+                packageName: '@grunnverk/test',
                 version: '1.0.0',
                 publishTime: new Date()
             };
@@ -43,19 +43,19 @@ describe('TreeExecutor', () => {
             const versions = await executor.getPublishedVersions();
 
             expect(versions).toHaveLength(1);
-            expect(versions[0].packageName).toBe('@eldrforge/test');
+            expect(versions[0].packageName).toBe('@grunnverk/test');
             expect(versions[0].version).toBe('1.0.0');
         });
 
         it('should add multiple published versions', async () => {
             await executor.addPublishedVersion({
-                packageName: '@eldrforge/test1',
+                packageName: '@grunnverk/test1',
                 version: '1.0.0',
                 publishTime: new Date()
             });
 
             await executor.addPublishedVersion({
-                packageName: '@eldrforge/test2',
+                packageName: '@grunnverk/test2',
                 version: '2.0.0',
                 publishTime: new Date()
             });
@@ -66,14 +66,14 @@ describe('TreeExecutor', () => {
 
         it('should return a copy of published versions (not modifiable)', async () => {
             await executor.addPublishedVersion({
-                packageName: '@eldrforge/test',
+                packageName: '@grunnverk/test',
                 version: '1.0.0',
                 publishTime: new Date()
             });
 
             const versions1 = await executor.getPublishedVersions();
             versions1.push({
-                packageName: '@eldrforge/fake',
+                packageName: '@grunnverk/fake',
                 version: '9.9.9',
                 publishTime: new Date()
             });
@@ -149,7 +149,7 @@ describe('TreeExecutor', () => {
         it('should reset all state', async () => {
             // Add some state
             await executor.addPublishedVersion({
-                packageName: '@eldrforge/test',
+                packageName: '@grunnverk/test',
                 version: '1.0.0',
                 publishTime: new Date()
             });
@@ -274,7 +274,7 @@ describe('TreeExecutor', () => {
             for (let i = 0; i < 10; i++) {
                 promises.push(
                     executor.addPublishedVersion({
-                        packageName: `@eldrforge/test${i}`,
+                        packageName: `@grunnverk/test${i}`,
                         version: '1.0.0',
                         publishTime: new Date()
                     })

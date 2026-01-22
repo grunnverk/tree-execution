@@ -2,8 +2,8 @@ import { EventEmitter } from 'events';
 import { randomUUID } from 'crypto';
 import { getLogger } from '../util/logger.js';
 import type { TreeExecutionConfig } from '../types/config.js';
-import type { DependencyGraph } from '@eldrforge/tree-core';
-import { findAllDependents } from '@eldrforge/tree-core';
+import type { DependencyGraph } from '@grunnverk/tree-core';
+import { findAllDependents } from '@grunnverk/tree-core';
 import type {
     ParallelExecutionCheckpoint,
     ExecutionState,

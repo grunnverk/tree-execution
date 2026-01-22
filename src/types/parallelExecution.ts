@@ -1,5 +1,5 @@
 import type { TreeExecutionConfig } from './config.js';
-import type { SerializedGraph } from '@eldrforge/tree-core';
+import type { SerializedGraph } from '@grunnverk/tree-core';
 
 export interface ParallelExecutionCheckpoint {
     // Metadata

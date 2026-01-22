@@ -1,5 +1,5 @@
 /**
- * @eldrforge/tree-execution
+ * @grunnverk/tree-execution
  *
  * Parallel execution framework and tree orchestration for monorepo workflows.
  * Provides sophisticated parallel task execution, error recovery, and checkpoint/resume.
