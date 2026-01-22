@@ -1,4 +1,4 @@
-# @eldrforge/tree-execution - Agentic Guide
+# @grunnverk/tree-execution - Agentic Guide
 
 ## Purpose
 
@@ -16,7 +16,7 @@ Parallel execution framework and tree orchestration for monorepo workflows. Prov
 ## Usage
 
 ```typescript
-import { TreeExecutor, DynamicTaskPool } from '@eldrforge/tree-execution';
+import { TreeExecutor, DynamicTaskPool } from '@grunnverk/tree-execution';
 
 // Create executor
 const executor = new TreeExecutor({
@@ -40,9 +40,9 @@ await executor.resume('/path/to/checkpoint.json');
 
 ## Dependencies
 
-- @eldrforge/tree-core - Dependency graph
-- @eldrforge/git-tools - Git operations
-- @eldrforge/shared - Shared utilities
+- @grunnverk/tree-core - Dependency graph
+- @grunnverk/git-tools - Git operations
+- @grunnverk/shared - Shared utilities
 
 ## Package Structure
 

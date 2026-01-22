@@ -1,4 +1,4 @@
-# @eldrforge/tree-execution
+# @grunnverk/tree-execution
 
 A sophisticated parallel execution framework designed for orchestrating complex dependency-aware workflows in monorepo environments. Execute tasks across multiple packages with intelligent scheduling, automatic error recovery, and checkpoint/resume capabilities.
 
@@ -21,7 +21,7 @@ A sophisticated parallel execution framework designed for orchestrating complex 
 
 ## Overview
 
-`@eldrforge/tree-execution` provides a robust framework for executing tasks across interdependent packages in a monorepo. It handles:
+`@grunnverk/tree-execution` provides a robust framework for executing tasks across interdependent packages in a monorepo. It handles:
 
 - **Dependency-aware scheduling**: Automatically determines execution order based on package dependencies
 - **Parallel execution**: Runs independent packages concurrently while respecting dependencies
@@ -38,8 +38,8 @@ Originally developed as part of the kodrdriv toolkit, this library has been extr
 Execute tasks across packages with automatic dependency resolution and optimal concurrency:
 
 ```typescript
-import { createTreeExecutor } from '@eldrforge/tree-execution';
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { createTreeExecutor } from '@grunnverk/tree-execution';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 const graph = await buildDependencyGraph(['packages/*/package.json']);
 const executor = createTreeExecutor();
@@ -57,7 +57,7 @@ await executor.execute({
 Save execution state to resume long-running operations:
 
 ```typescript
-import { DynamicTaskPool } from '@eldrforge/tree-execution';
+import { DynamicTaskPool } from '@grunnverk/tree-execution';
 
 const pool = new DynamicTaskPool({
     graph,
@@ -97,7 +97,7 @@ const result = await executor.execute({
 Monitor execution with detailed metrics:
 
 ```typescript
-import { createParallelProgressLogger } from '@eldrforge/tree-execution';
+import { createParallelProgressLogger } from '@grunnverk/tree-execution';
 
 const logger = createParallelProgressLogger(totalPackages);
 
@@ -113,13 +113,13 @@ pool.on('package:completed', ({ packageName, result }) => {
 ## Installation
 
 ```bash
-npm install @eldrforge/tree-execution
+npm install @grunnverk/tree-execution
 ```
 
 ### Peer Dependencies
 
 ```bash
-npm install @eldrforge/tree-core @eldrforge/git-tools @eldrforge/shared
+npm install @grunnverk/tree-core @grunnverk/git-tools @grunnverk/shared
 ```
 
 ## Core Concepts
@@ -129,7 +129,7 @@ npm install @eldrforge/tree-core @eldrforge/git-tools @eldrforge/shared
 The foundation of execution is a dependency graph built from package.json files:
 
 ```typescript
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 // Scan for packages
 const graph = await buildDependencyGraph([
@@ -178,7 +178,7 @@ interface ExecutionState {
 ### Basic Usage with TreeExecutor
 
 ```typescript
-import { createTreeExecutor } from '@eldrforge/tree-execution';
+import { createTreeExecutor } from '@grunnverk/tree-execution';
 
 // Create executor
 const executor = createTreeExecutor({
@@ -206,8 +206,8 @@ console.log(`Failed: ${result.failed.length}`);
 ### Advanced Usage with DynamicTaskPool
 
 ```typescript
-import { DynamicTaskPool } from '@eldrforge/tree-execution';
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { DynamicTaskPool } from '@grunnverk/tree-execution';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 // Build dependency graph
 const graph = await buildDependencyGraph(['packages/*/package.json']);
@@ -315,7 +315,7 @@ setCommand(name: keyof CommandRegistry, executor: CommandExecutor): void
 #### Factory Function
 
 ```typescript
-import { createTreeExecutor } from '@eldrforge/tree-execution';
+import { createTreeExecutor } from '@grunnverk/tree-execution';
 
 const executor = createTreeExecutor({
     commands: {
@@ -334,7 +334,7 @@ Low-level parallel execution engine.
 constructor(config: PoolConfig)
 
 interface PoolConfig {
-    graph: DependencyGraph;      // Dependency graph from @eldrforge/tree-core
+    graph: DependencyGraph;      // Dependency graph from @grunnverk/tree-core
     maxConcurrency: number;      // Maximum parallel tasks
     command: string;             // Command to execute
     config: TreeExecutionConfig; // Execution configuration
@@ -398,7 +398,7 @@ pool.on('checkpoint:loaded', ({ path, resumePoint }) => { });
 Bridges DynamicTaskPool with custom execution functions:
 
 ```typescript
-import { TreeExecutionAdapter, ExecutePackageFunction } from '@eldrforge/tree-execution';
+import { TreeExecutionAdapter, ExecutePackageFunction } from '@grunnverk/tree-execution';
 
 const executePackage: ExecutePackageFunction = async (
     packageName,
@@ -422,7 +422,7 @@ const result = await adapter.execute();
 #### Progress Logger
 
 ```typescript
-import { createParallelProgressLogger } from '@eldrforge/tree-execution';
+import { createParallelProgressLogger } from '@grunnverk/tree-execution';
 
 const logger = createParallelProgressLogger(totalPackages);
 
@@ -442,7 +442,7 @@ pool.on('package:failed', ({ packageName, error }) => {
 #### Result Formatter
 
 ```typescript
-import { formatParallelResult } from '@eldrforge/tree-execution';
+import { formatParallelResult } from '@grunnverk/tree-execution';
 
 const result = await pool.execute();
 const formatted = formatParallelResult(result);
@@ -456,7 +456,7 @@ console.log(formatted); // Human-readable summary
 Manages execution state persistence:
 
 ```typescript
-import { CheckpointManager } from '@eldrforge/tree-execution';
+import { CheckpointManager } from '@grunnverk/tree-execution';
 
 const manager = new CheckpointManager('./checkpoints');
 
@@ -478,7 +478,7 @@ await manager.cleanOldCheckpoints(maxAge);
 Handles error recovery and state validation:
 
 ```typescript
-import { RecoveryManager, loadRecoveryManager } from '@eldrforge/tree-execution';
+import { RecoveryManager, loadRecoveryManager } from '@grunnverk/tree-execution';
 
 // Load from checkpoint
 const manager = await loadRecoveryManager('./checkpoint.json');
@@ -513,7 +513,7 @@ const resumeConfig = await manager.getResumeConfig();
 Determines execution order based on dependencies:
 
 ```typescript
-import { Scheduler } from '@eldrforge/tree-execution';
+import { Scheduler } from '@grunnverk/tree-execution';
 
 const scheduler = new Scheduler(graph, dependencyChecker);
 
@@ -533,7 +533,7 @@ const canRun = scheduler.canExecute(packageName, state);
 Tracks available execution slots:
 
 ```typescript
-import { ResourceMonitor } from '@eldrforge/tree-execution';
+import { ResourceMonitor } from '@grunnverk/tree-execution';
 
 const monitor = new ResourceMonitor(maxConcurrency);
 
@@ -558,7 +558,7 @@ console.log(`Active: ${metrics.activeCount}, Available: ${metrics.availableSlots
 Verifies package dependencies:
 
 ```typescript
-import { DependencyChecker } from '@eldrforge/tree-execution';
+import { DependencyChecker } from '@grunnverk/tree-execution';
 
 const checker = new DependencyChecker(graph);
 
@@ -574,7 +574,7 @@ const canRun = checker.canPackageRun(packageName, state);
 Validates commands for parallel execution:
 
 ```typescript
-import { CommandValidator } from '@eldrforge/tree-execution';
+import { CommandValidator } from '@grunnverk/tree-execution';
 
 const validator = new CommandValidator();
 
@@ -592,7 +592,7 @@ const isSafe = validator.isSafeForParallel('npm run build');
 ### Logger Integration
 
 ```typescript
-import { setLogger, getLogger } from '@eldrforge/tree-execution';
+import { setLogger, getLogger } from '@grunnverk/tree-execution';
 
 // Set custom logger
 setLogger({
@@ -616,7 +616,7 @@ logger.info('Execution started');
 Integrate your own command handlers:
 
 ```typescript
-import { createTreeExecutor, CommandExecutor } from '@eldrforge/tree-execution';
+import { createTreeExecutor, CommandExecutor } from '@grunnverk/tree-execution';
 
 // Define custom command
 class MyTestCommand implements CommandExecutor {
@@ -648,7 +648,7 @@ await executor.execute({
 Execute only packages matching certain criteria:
 
 ```typescript
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 // Build graph with exclusions
 const graph = await buildDependencyGraph(
@@ -684,8 +684,8 @@ await pool.execute();
 Execute only packages with changes since last run:
 
 ```typescript
-import { getGitStatusSummary } from '@eldrforge/git-tools';
-import { findAllDependents } from '@eldrforge/tree-core';
+import { getGitStatusSummary } from '@grunnverk/git-tools';
+import { findAllDependents } from '@grunnverk/tree-core';
 
 // Get changed packages
 const status = await getGitStatusSummary();
@@ -731,7 +731,7 @@ await pool.execute();
 Build a real-time progress dashboard:
 
 ```typescript
-import { DynamicTaskPool } from '@eldrforge/tree-execution';
+import { DynamicTaskPool } from '@grunnverk/tree-execution';
 
 const pool = new DynamicTaskPool(config);
 
@@ -820,7 +820,7 @@ await pool.execute();
 Implement a complete recovery workflow:
 
 ```typescript
-import { loadRecoveryManager } from '@eldrforge/tree-execution';
+import { loadRecoveryManager } from '@grunnverk/tree-execution';
 
 async function recoverExecution(checkpointPath: string) {
     // Load recovery manager
@@ -1073,8 +1073,8 @@ await recovery.applyRecoveryOptions({
 Run tests across all packages with intelligent parallelization:
 
 ```typescript
-import { createTreeExecutor } from '@eldrforge/tree-execution';
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { createTreeExecutor } from '@grunnverk/tree-execution';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 async function runMonorepoTests() {
     // Build dependency graph
@@ -1116,9 +1116,9 @@ runMonorepoTests().then(code => process.exit(code));
 Build only changed packages and their dependents:
 
 ```typescript
-import { DynamicTaskPool } from '@eldrforge/tree-execution';
-import { buildDependencyGraph, findAllDependents } from '@eldrforge/tree-core';
-import { getGitStatusSummary } from '@eldrforge/git-tools';
+import { DynamicTaskPool } from '@grunnverk/tree-execution';
+import { buildDependencyGraph, findAllDependents } from '@grunnverk/tree-core';
+import { getGitStatusSummary } from '@grunnverk/git-tools';
 
 async function incrementalBuild() {
     // Get changed packages
@@ -1173,8 +1173,8 @@ incrementalBuild().catch(console.error);
 Publish packages in dependency order with automatic version tracking:
 
 ```typescript
-import { DynamicTaskPool, createParallelProgressLogger } from '@eldrforge/tree-execution';
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { DynamicTaskPool, createParallelProgressLogger } from '@grunnverk/tree-execution';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 async function publishMonorepo() {
     const graph = await buildDependencyGraph(['packages/*/package.json']);
@@ -1242,8 +1242,8 @@ publishMonorepo().catch(console.error);
 Run integration tests with environment setup/teardown:
 
 ```typescript
-import { DynamicTaskPool } from '@eldrforge/tree-execution';
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { DynamicTaskPool } from '@grunnverk/tree-execution';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 async function runIntegrationTests() {
     const graph = await buildDependencyGraph(['services/*/package.json']);
@@ -1303,8 +1303,8 @@ runIntegrationTests().catch(console.error);
 Implement a multi-stage build pipeline:
 
 ```typescript
-import { DynamicTaskPool } from '@eldrforge/tree-execution';
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { DynamicTaskPool } from '@grunnverk/tree-execution';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 async function buildPipeline() {
     const graph = await buildDependencyGraph(['packages/*/package.json']);
@@ -1395,8 +1395,8 @@ Example test for custom integration:
 
 ```typescript
 import { describe, it, expect } from 'vitest';
-import { createTreeExecutor } from '@eldrforge/tree-execution';
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { createTreeExecutor } from '@grunnverk/tree-execution';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 describe('Custom Integration', () => {
     it('should execute custom command', async () => {
@@ -1420,7 +1420,7 @@ describe('Custom Integration', () => {
 ### Component Overview
 
 ```
-@eldrforge/tree-execution
+@grunnverk/tree-execution
 ├── TreeExecutor (High-level API)
 │   ├── State management
 │   ├── Command injection
@@ -1452,7 +1452,7 @@ describe('Custom Integration', () => {
 
 ```
 1. Build dependency graph
-   └→ @eldrforge/tree-core
+   └→ @grunnverk/tree-core
 
 2. Initialize DynamicTaskPool
    ├→ Create Scheduler
@@ -1485,7 +1485,7 @@ describe('Custom Integration', () => {
 All state mutations are protected by mutexes:
 
 ```typescript
-import { SimpleMutex } from '@eldrforge/tree-execution';
+import { SimpleMutex } from '@grunnverk/tree-execution';
 
 class StatefulComponent {
     private mutex = new SimpleMutex();
@@ -1503,9 +1503,9 @@ class StatefulComponent {
 
 ### Required Dependencies
 
-- **@eldrforge/tree-core**: Dependency graph algorithms
-- **@eldrforge/git-tools**: Git operations
-- **@eldrforge/shared**: Shared utilities
+- **@grunnverk/tree-core**: Dependency graph algorithms
+- **@grunnverk/git-tools**: Git operations
+- **@grunnverk/shared**: Shared utilities
 
 ### Peer Dependencies
 
@@ -1560,13 +1560,13 @@ MIT © Tim O'Brien
 
 - **GitHub**: https://github.com/grunnverk/tree-execution
 - **Issues**: https://github.com/grunnverk/tree-execution/issues
-- **npm**: https://www.npmjs.com/package/@eldrforge/tree-execution
+- **npm**: https://www.npmjs.com/package/@grunnverk/tree-execution
 
 ## Related Projects
 
-- **@eldrforge/tree-core**: Dependency graph algorithms
-- **@eldrforge/git-tools**: Git operations toolkit
-- **@eldrforge/shared**: Shared utilities
+- **@grunnverk/tree-core**: Dependency graph algorithms
+- **@grunnverk/git-tools**: Git operations toolkit
+- **@grunnverk/shared**: Shared utilities
 - **kodrdriv**: Complete monorepo toolkit (uses tree-execution)
 
 ---

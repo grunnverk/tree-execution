@@ -1,6 +1,6 @@
 import { getLogger } from '../util/logger.js';
-import type { DependencyGraph } from '@eldrforge/tree-core';
-import { findAllDependents } from '@eldrforge/tree-core';
+import type { DependencyGraph } from '@grunnverk/tree-core';
+import { findAllDependents } from '@grunnverk/tree-core';
 import type { ParallelExecutionCheckpoint, FailedPackageSnapshot, RecoveryHint } from '../types/index.js';
 import { CheckpointManager } from '../checkpoint/index.js';
 import * as path from 'path';
@@ -62,7 +62,7 @@ export class RecoveryManager {
 
     /**
      * Mark packages as completed
-     * Accepts either package names (e.g., "@eldrforge/git-tools") or directory names (e.g., "git-tools")
+     * Accepts either package names (e.g., "@grunnverk/git-tools") or directory names (e.g., "git-tools")
      */
     async markCompleted(packages: string[]): Promise<void> {
         this.logger.info(`RECOVERY_MARKING_COMPLETED: Marking packages as completed | Package Count: ${packages.length} | Action: Update checkpoint state | Purpose: Manual recovery`);

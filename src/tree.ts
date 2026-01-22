@@ -35,22 +35,22 @@
 import path from 'path';
 import fs from 'fs/promises';
 import child_process, { exec } from 'child_process';
-import { run, runSecure, safeJsonParse, validatePackageJson, getGitStatusSummary, getGloballyLinkedPackages, getLinkedDependencies, getLinkCompatibilityProblems } from '@eldrforge/git-tools';
+import { run, runSecure, safeJsonParse, validatePackageJson, getGitStatusSummary, getGloballyLinkedPackages, getLinkedDependencies, getLinkCompatibilityProblems } from '@grunnverk/git-tools';
 import util from 'util';
 import { getLogger } from './util/logger.js';
 import type { TreeExecutionConfig } from './types/config.js';
-import { createStorage } from '@eldrforge/shared';
+import { createStorage } from '@grunnverk/shared';
 import type {
     PackageInfo,
     DependencyGraph
-} from '@eldrforge/tree-core';
+} from '@grunnverk/tree-core';
 import {
     scanForPackageJsonFiles,
     parsePackageJson,
     buildDependencyGraph,
     topologicalSort,
     shouldExclude
-} from '@eldrforge/tree-core';
+} from '@grunnverk/tree-core';
 
 // Utility functions (extracted/inlined)
 import {
@@ -1334,7 +1334,7 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
             goodPackages: 0
         });
         const formatAuditResults = (_results: any) => 'Branch audit not implemented';
-        const { getRemoteDefaultBranch } = await import('@eldrforge/git-tools');
+        const { getRemoteDefaultBranch } = await import('@grunnverk/git-tools');
 
         // For publish workflows, check branch consistency, merge conflicts, and existing PRs
         // Don't pass an expected branch - let the audit find the most common branch

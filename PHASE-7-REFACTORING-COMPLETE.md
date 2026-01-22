@@ -136,7 +136,7 @@ const executor = createTreeExecutor({
 
 ### Logger Injection
 ```typescript
-import { setLogger } from '@eldrforge/tree-execution';
+import { setLogger } from '@grunnverk/tree-execution';
 setLogger(myCustomLogger);
 ```
 
@@ -269,7 +269,7 @@ setLogger(myCustomLogger);
 
 ### Using TreeExecutor
 ```typescript
-import { createTreeExecutor } from '@eldrforge/tree-execution';
+import { createTreeExecutor } from '@grunnverk/tree-execution';
 
 const executor = createTreeExecutor({
     commands: {
@@ -283,8 +283,8 @@ await executor.execute(config);
 
 ### Using Execution Framework
 ```typescript
-import { DynamicTaskPool } from '@eldrforge/tree-execution';
-import { buildDependencyGraph } from '@eldrforge/tree-core';
+import { DynamicTaskPool } from '@grunnverk/tree-execution';
+import { buildDependencyGraph } from '@grunnverk/tree-core';
 
 const graph = await buildDependencyGraph(packages);
 const pool = new DynamicTaskPool({
@@ -299,7 +299,7 @@ const result = await pool.execute();
 
 ### Using Utilities
 ```typescript
-import { SimpleMutex, setLogger } from '@eldrforge/tree-execution';
+import { SimpleMutex, setLogger } from '@grunnverk/tree-execution';
 
 // Thread-safe operations
 const mutex = new SimpleMutex();

@@ -1,4 +1,4 @@
-import type { DependencyGraph } from '@eldrforge/tree-core';
+import type { DependencyGraph } from '@grunnverk/tree-core';
 import type { ExecutionState } from '../types/index.js';
 import { DependencyChecker } from './DependencyChecker.js';
 

@@ -2,7 +2,7 @@
  * Mock helpers for testing
  */
 
-import type { DependencyGraph, PackageInfo } from '@eldrforge/tree-core';
+import type { DependencyGraph, PackageInfo } from '@grunnverk/tree-core';
 import type { ParallelExecutionCheckpoint, TreeExecutionConfig, ExecutionState } from '../../src/index.js';
 
 /**
