@@ -55,6 +55,10 @@ export { SimpleMutex } from './util/mutex.js';
 
 export { CheckpointManager } from './checkpoint/index.js';
 
+// Package execution context for isolation
+export { PackageExecutionContext, PackageContextFactory } from './context/PackageExecutionContext.js';
+export type { PackageContextOptions, RepositoryInfo } from './context/PackageExecutionContext.js';
+
 // Tree orchestration
 export { execute as executeTree } from './tree.js';
 export { __resetGlobalState as resetTreeGlobalState } from './tree.js';

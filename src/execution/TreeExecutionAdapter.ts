@@ -3,6 +3,7 @@ import type { PackageInfo } from '@grunnverk/tree-core';
 import type { TreeExecutionConfig } from '../types/config.js';
 import type { PackageResult } from '../types/index.js';
 import { getLogger } from '../util/logger.js';
+import type { PackageExecutionContext } from '../context/PackageExecutionContext.js';
 
 /**
  * ExecutePackageFunction type matches the signature of tree.ts executePackage
@@ -16,7 +17,8 @@ export type ExecutePackageFunction = (
     index: number,
     total: number,
     allPackageNames: Set<string>,
-    isBuiltInCommand?: boolean
+    isBuiltInCommand?: boolean,
+    context?: PackageExecutionContext
 ) => Promise<{ success: boolean; error?: any; isTimeoutError?: boolean; skippedNoChanges?: boolean; logFile?: string }>;
 
 /**
@@ -55,6 +57,22 @@ export class TreeExecutionAdapter {
                 throw new Error(`Package not found: ${packageName}`);
             }
 
+            // Get the isolated execution context for this package
+            const context = (this.pool as any).packageContexts?.get(packageName);
+            if (context) {
+                const logger = getLogger();
+                logger.debug(`Using isolated context for ${packageName}`);
+                logger.debug(`  Repository: ${context.repositoryOwner}/${context.repositoryName}`);
+
+                // Validate context before use
+                try {
+                    context.validate();
+                } catch (error: any) {
+                    logger.error(`Context validation failed for ${packageName}: ${error.message}`);
+                    throw error;
+                }
+            }
+
             const allPackageNames = new Set(this.config.graph.packages.keys());
             const isDryRun = this.config.config.dryRun || false;
             const isBuiltInCommand = !this.config.command.startsWith('npm') &&
@@ -80,7 +98,7 @@ export class TreeExecutionAdapter {
                 }
             }
 
-            // Call tree.ts executePackage
+            // Call tree.ts executePackage with context
             const startTime = Date.now();
             const result = await this.executePackageFn(
                 packageName,
@@ -91,7 +109,8 @@ export class TreeExecutionAdapter {
                 currentIndex, // Use incremented started count for proper [N/Total] display
                 this.config.graph.packages.size,
                 allPackageNames,
-                isBuiltInCommand
+                isBuiltInCommand,
+                context // Pass the isolated context
             );
 
             const duration = Date.now() - startTime;
@@ -246,17 +265,22 @@ function createRecoveryGuidance(hasRetriable: boolean, hasPermanent: boolean): s
 /**
  * Format parallel execution result for display
  */
-export function formatParallelResult(result: any): string {
+export function formatParallelResult(result: any, command?: string): string {
     const lines: string[] = [];
+
+    // Determine appropriate terminology based on command
+    const isPublish = command === 'publish' || command?.includes('publish');
+    const summaryTitle = isPublish ? 'Publish Summary' : 'Execution Summary';
+    const successLabel = isPublish ? 'Published' : 'Completed';
 
     // Separator line
     lines.push('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    lines.push('📊 Publish Summary');
+    lines.push(`📊 ${summaryTitle}`);
     lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
     // Detailed status breakdown by category
     if (result.completed.length > 0) {
-        lines.push(`✅ Published (${result.completed.length}):`);
+        lines.push(`✅ ${successLabel} (${result.completed.length}):`);
         for (const pkg of result.completed) {
             lines.push(`   - ${pkg}`);
         }

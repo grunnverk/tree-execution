@@ -725,7 +725,8 @@ export const executePackage = async (
     index: number,
     total: number,
     allPackageNames: Set<string>,
-    isBuiltInCommand: boolean = false
+    isBuiltInCommand: boolean = false,
+    context?: any // PackageExecutionContext - optional for backward compatibility
 ): Promise<{ success: boolean; error?: any; isTimeoutError?: boolean; skippedNoChanges?: boolean; logFile?: string }> => {
     const packageLogger = createPackageLogger(packageName, index + 1, total, isDryRun);
     const packageDir = packageInfo.path;
@@ -964,7 +965,22 @@ export const executePackage = async (
                         commandTimeoutMs = 300000; // 5 minutes default for other commands
                     }
 
-                    const commandPromise = runWithLogging(effectiveCommand, packageLogger, {}, showOutput, logFilePath);
+                    // Pass context through environment variables for parallel execution isolation
+                    const contextEnv: Record<string, string> = {};
+                    if (context) {
+                        contextEnv.KODRDRIV_CONTEXT_PACKAGE_NAME = context.packageName;
+                        contextEnv.KODRDRIV_CONTEXT_REPOSITORY_URL = context.repositoryUrl;
+                        contextEnv.KODRDRIV_CONTEXT_REPOSITORY_OWNER = context.repositoryOwner;
+                        contextEnv.KODRDRIV_CONTEXT_REPOSITORY_NAME = context.repositoryName;
+                        contextEnv.KODRDRIV_CONTEXT_GIT_REMOTE = context.gitRemote;
+
+                        if (runConfig.debug) {
+                            packageLogger.debug(`Using isolated execution context for ${context.packageName}`);
+                            packageLogger.debug(`  Repository: ${context.repositoryOwner}/${context.repositoryName}`);
+                        }
+                    }
+
+                    const commandPromise = runWithLogging(effectiveCommand, packageLogger, contextEnv, showOutput, logFilePath);
                     const commandTimeoutPromise = new Promise<never>((_, reject) => {
                         setTimeout(() => reject(new Error(`Command timed out after ${commandTimeoutMs/60000} minutes`)), commandTimeoutMs);
                     });
@@ -2771,7 +2787,7 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
                 const result = await adapter.execute();
 
                 // Format and return result
-                const formattedResult = formatParallelResult(result);
+                const formattedResult = formatParallelResult(result, commandToRun);
                 return formattedResult;
             }
 
