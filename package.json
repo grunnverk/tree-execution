@@ -12,7 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint 'src/**/*.ts' --ignore-pattern 'src/util/logger.ts'",
     "clean": "rm -rf dist coverage",
-    "precommit": "npm run lint && npm run build && npm test",
+    "precommit": "npm run lint && npm run build && npm run test",
     "prepublishOnly": "npm run clean && npm run build && npm test"
   },
   "keywords": [
