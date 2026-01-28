@@ -16,6 +16,7 @@ import { CheckpointManager } from '../checkpoint/index.js';
 import { DependencyChecker } from './DependencyChecker.js';
 import { ResourceMonitor } from './ResourceMonitor.js';
 import { Scheduler } from './Scheduler.js';
+import { PackageContextFactory, type PackageExecutionContext } from '../context/PackageExecutionContext.js';
 
 export interface PoolConfig {
     graph: DependencyGraph;
@@ -65,6 +66,9 @@ export class DynamicTaskPool extends EventEmitter {
     private packageDurations = new Map<string, number>();
     private retryAttempts = new Map<string, number>();
     private publishedVersions: Array<{name: string, version: string, time: Date}> = [];
+    
+    // Package execution contexts for isolation
+    private packageContexts: Map<string, PackageExecutionContext>;
 
     constructor(config: PoolConfig) {
         super();
@@ -83,6 +87,18 @@ export class DynamicTaskPool extends EventEmitter {
 
         // Initialize state
         this.state = this.initializeState();
+        
+        // Create isolated execution contexts for all packages
+        const packages = Array.from(this.graph.packages.values()).map(pkg => ({
+            name: pkg.name,
+            path: pkg.path
+        }));
+        this.packageContexts = PackageContextFactory.createContexts(packages);
+        
+        this.logger.debug(`Created ${this.packageContexts.size} isolated execution contexts`);
+        this.packageContexts.forEach((ctx, name) => {
+            this.logger.debug(`  ${name} → ${ctx.repositoryOwner}/${ctx.repositoryName}`);
+        });
     }
 
     /**

@@ -1,6 +1,6 @@
 {
   "name": "@grunnverk/tree-execution",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Parallel execution framework and tree orchestration for monorepo workflows",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +12,7 @@
     "test:coverage": "vitest run --coverage",
     "lint": "eslint 'src/**/*.ts' --ignore-pattern 'src/util/logger.ts'",
     "clean": "rm -rf dist coverage",
-    "precommit": "npm run lint && npm run build && npm test",
+    "precommit": "npm run lint && npm run build && npm run test",
     "prepublishOnly": "npm run clean && npm run build && npm test"
   },
   "keywords": [
@@ -35,9 +35,9 @@
   },
   "homepage": "https://github.com/grunnverk/tree-execution#readme",
   "dependencies": {
-    "@grunnverk/tree-core": "^1.5.0",
-    "@grunnverk/git-tools": "^1.5.0",
-    "@grunnverk/shared": "^1.5.2"
+    "@grunnverk/tree-core": "^1.5.1",
+    "@grunnverk/git-tools": "^1.5.1",
+    "@grunnverk/shared": "^1.5.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
