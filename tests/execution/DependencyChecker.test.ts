@@ -92,6 +92,39 @@ describe('DependencyChecker', () => {
             // B depends on C, and C failed, so B should not be ready
             expect(checker.isReady('B', state)).toBe(false);
         });
+
+        it('should return true if dependencies are in skippedNoChanges', () => {
+            const state: ExecutionState = {
+                pending: ['A'],
+                ready: [],
+                running: [],
+                completed: [],
+                failed: [],
+                skipped: [],
+                skippedNoChanges: ['B', 'C']
+            };
+
+            // A depends on B, which depends on C
+            // Both B and C are in skippedNoChanges (e.g., already published)
+            // A should still be ready to execute
+            expect(checker.isReady('A', state)).toBe(true);
+        });
+
+        it('should return true if dependencies are mix of completed and skippedNoChanges', () => {
+            const state: ExecutionState = {
+                pending: ['A'],
+                ready: [],
+                running: [],
+                completed: ['C'],
+                failed: [],
+                skipped: [],
+                skippedNoChanges: ['B']
+            };
+
+            // A depends on B (skippedNoChanges) which depends on C (completed)
+            // A should be ready since both dependencies are satisfied
+            expect(checker.isReady('A', state)).toBe(true);
+        });
     });
 
     describe('getDependentCount', () => {

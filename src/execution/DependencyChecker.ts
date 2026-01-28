@@ -15,13 +15,16 @@ export class DependencyChecker {
     /**
      * Check if a package is ready to execute
      * A package is ready when all its dependencies are completed and none have failed
+     * Note: Packages in skippedNoChanges are treated as completed since they successfully
+     * ran but had nothing to do (e.g., already published)
      */
     isReady(packageName: string, state: ExecutionState): boolean {
         const dependencies = this.graph.edges.get(packageName) || new Set();
 
         for (const dep of dependencies) {
-            // If any dependency is not completed, not ready
-            if (!state.completed.includes(dep)) {
+            // If any dependency is not completed (or skipped with no changes), not ready
+            // Packages skipped due to no changes should unblock dependents
+            if (!state.completed.includes(dep) && !state.skippedNoChanges.includes(dep)) {
                 return false;
             }
 
