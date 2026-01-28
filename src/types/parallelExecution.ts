@@ -111,6 +111,7 @@ export interface PackageResult {
     stdout?: string;
     stderr?: string;
     skippedNoChanges?: boolean; // True if package was skipped due to no code changes
+    skipReason?: 'no-changes' | 'already-published' | 'other'; // Reason for skipping
 }
 
 export interface RetryConfig {

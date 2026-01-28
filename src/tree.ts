@@ -727,7 +727,7 @@ export const executePackage = async (
     allPackageNames: Set<string>,
     isBuiltInCommand: boolean = false,
     context?: any // PackageExecutionContext - optional for backward compatibility
-): Promise<{ success: boolean; error?: any; isTimeoutError?: boolean; skippedNoChanges?: boolean; logFile?: string }> => {
+): Promise<{ success: boolean; error?: any; isTimeoutError?: boolean; skippedNoChanges?: boolean; skipReason?: 'no-changes' | 'already-published' | 'other'; logFile?: string }> => {
     const packageLogger = createPackageLogger(packageName, index + 1, total, isDryRun);
     const packageDir = packageInfo.path;
     const logger = getLogger();
@@ -774,6 +774,7 @@ export const executePackage = async (
 
     // Track if publish was skipped due to no changes
     let publishWasSkipped: boolean = false;
+    let publishSkipReason: 'no-changes' | 'already-published' | 'other' = 'no-changes';
 
     // Track execution timing
     const executionTimer = new PerformanceTimer(`Package ${packageName} execution`);
@@ -996,6 +997,12 @@ export const executePackage = async (
                              (stderr && stderr.includes('KODRDRIV_PUBLISH_SKIPPED')))) {
                             packageLogger.info('Publish skipped for this package; will not record or propagate a version.');
                             publishWasSkipped = true;
+                            
+                            // Parse skip reason if available
+                            const reasonMatch = (stdout || stderr || '').match(/KODRDRIV_PUBLISH_SKIP_REASON:(\S+)/);
+                            if (reasonMatch) {
+                                publishSkipReason = reasonMatch[1] as 'no-changes' | 'already-published' | 'other';
+                            }
                         }
                     } catch (error: any) {
                         if (error.message.includes('timed out')) {
@@ -1090,7 +1097,8 @@ export const executePackage = async (
         // Show completion status (for publish/commit commands, this supplements the timing message above)
         if (runConfig.debug || runConfig.verbose) {
             if (publishWasSkipped) {
-                packageLogger.info(`⊘ Skipped (no code changes)`);
+                const reasonText = publishSkipReason === 'already-published' ? 'already published' : 'no code changes';
+                packageLogger.info(`⊘ Skipped (${reasonText})`);
             } else {
                 packageLogger.info(`✅ Completed successfully`);
             }
@@ -1099,7 +1107,8 @@ export const executePackage = async (
             // Include timing if available
             const timeStr = executionDuration !== undefined ? ` (${(executionDuration / 1000).toFixed(1)}s)` : '';
             if (publishWasSkipped) {
-                logger.info(`[${index + 1}/${total}] ${packageName}: ⊘ Skipped (no code changes)`);
+                const reasonText = publishSkipReason === 'already-published' ? 'already published' : 'no code changes';
+                logger.info(`[${index + 1}/${total}] ${packageName}: ⊘ Skipped (${reasonText})`);
             } else {
                 logger.info(`[${index + 1}/${total}] ${packageName}: ✅ Completed${timeStr}`);
             }
@@ -1110,7 +1119,12 @@ export const executePackage = async (
             executionDuration = executionTimer.end();
         }
 
-        return { success: true, skippedNoChanges: publishWasSkipped, logFile: logFilePath };
+        return { 
+            success: true, 
+            skippedNoChanges: publishWasSkipped, 
+            skipReason: publishWasSkipped ? publishSkipReason : undefined,
+            logFile: logFilePath 
+        };
     } catch (error: any) {
         // Record timing even on error
         if (executionDuration === undefined) {
