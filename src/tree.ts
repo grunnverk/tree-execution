@@ -65,6 +65,7 @@ import {
 // Built-in commands - using stubs for now
 // TODO: Refactor to use callbacks/dependency injection
 import { Updates, Commit, Link, Unlink } from './util/commandStubs.js';
+import { escapeShellArg } from './util/shellEscape.js';
 
 // Define constants locally
 const DEFAULT_OUTPUT_DIRECTORY = 'output/kodrdriv';
@@ -727,7 +728,7 @@ export const executePackage = async (
     allPackageNames: Set<string>,
     isBuiltInCommand: boolean = false,
     context?: any // PackageExecutionContext - optional for backward compatibility
-): Promise<{ success: boolean; error?: any; isTimeoutError?: boolean; skippedNoChanges?: boolean; logFile?: string }> => {
+): Promise<{ success: boolean; error?: any; isTimeoutError?: boolean; skippedNoChanges?: boolean; skipReason?: 'no-changes' | 'already-published' | 'other'; logFile?: string }> => {
     const packageLogger = createPackageLogger(packageName, index + 1, total, isDryRun);
     const packageDir = packageInfo.path;
     const logger = getLogger();
@@ -774,6 +775,7 @@ export const executePackage = async (
 
     // Track if publish was skipped due to no changes
     let publishWasSkipped: boolean = false;
+    let publishSkipReason: 'no-changes' | 'already-published' | 'other' = 'no-changes';
 
     // Track execution timing
     const executionTimer = new PerformanceTimer(`Package ${packageName} execution`);
@@ -996,6 +998,12 @@ export const executePackage = async (
                              (stderr && stderr.includes('KODRDRIV_PUBLISH_SKIPPED')))) {
                             packageLogger.info('Publish skipped for this package; will not record or propagate a version.');
                             publishWasSkipped = true;
+
+                            // Parse skip reason if available
+                            const reasonMatch = (stdout || stderr || '').match(/KODRDRIV_PUBLISH_SKIP_REASON:(\S+)/);
+                            if (reasonMatch) {
+                                publishSkipReason = reasonMatch[1] as 'no-changes' | 'already-published' | 'other';
+                            }
                         }
                     } catch (error: any) {
                         if (error.message.includes('timed out')) {
@@ -1090,7 +1098,8 @@ export const executePackage = async (
         // Show completion status (for publish/commit commands, this supplements the timing message above)
         if (runConfig.debug || runConfig.verbose) {
             if (publishWasSkipped) {
-                packageLogger.info(`⊘ Skipped (no code changes)`);
+                const reasonText = publishSkipReason === 'already-published' ? 'already published' : 'no code changes';
+                packageLogger.info(`⊘ Skipped (${reasonText})`);
             } else {
                 packageLogger.info(`✅ Completed successfully`);
             }
@@ -1099,7 +1108,8 @@ export const executePackage = async (
             // Include timing if available
             const timeStr = executionDuration !== undefined ? ` (${(executionDuration / 1000).toFixed(1)}s)` : '';
             if (publishWasSkipped) {
-                logger.info(`[${index + 1}/${total}] ${packageName}: ⊘ Skipped (no code changes)`);
+                const reasonText = publishSkipReason === 'already-published' ? 'already published' : 'no code changes';
+                logger.info(`[${index + 1}/${total}] ${packageName}: ⊘ Skipped (${reasonText})`);
             } else {
                 logger.info(`[${index + 1}/${total}] ${packageName}: ✅ Completed${timeStr}`);
             }
@@ -1110,7 +1120,12 @@ export const executePackage = async (
             executionDuration = executionTimer.end();
         }
 
-        return { success: true, skippedNoChanges: publishWasSkipped, logFile: logFilePath };
+        return {
+            success: true,
+            skippedNoChanges: publishWasSkipped,
+            skipReason: publishWasSkipped ? publishSkipReason : undefined,
+            logFile: logFilePath
+        };
     } catch (error: any) {
         // Record timing even on error
         if (executionDuration === undefined) {
@@ -2389,10 +2404,10 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
             if (runConfig.overrides) globalOptions.push('--overrides');
 
             // Propagate global options with values
-            if (runConfig.model) globalOptions.push(`--model "${runConfig.model}"`);
-            if (runConfig.configDirectory) globalOptions.push(`--config-dir "${runConfig.configDirectory}"`);
-            if (runConfig.outputDirectory) globalOptions.push(`--output-dir "${runConfig.outputDirectory}"`);
-            if (runConfig.preferencesDirectory) globalOptions.push(`--preferences-dir "${runConfig.preferencesDirectory}"`);
+            if (runConfig.model) globalOptions.push(`--model ${escapeShellArg(runConfig.model)}`);
+            if (runConfig.configDirectory) globalOptions.push(`--config-dir ${escapeShellArg(runConfig.configDirectory)}`);
+            if (runConfig.outputDirectory) globalOptions.push(`--output-dir ${escapeShellArg(runConfig.outputDirectory)}`);
+            if (runConfig.preferencesDirectory) globalOptions.push(`--preferences-dir ${escapeShellArg(runConfig.preferencesDirectory)}`);
 
             // Build the command with global options
             const optionsString = globalOptions.length > 0 ? ` ${globalOptions.join(' ')}` : '';
@@ -2400,7 +2415,7 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
             // Add package argument for link/unlink/updates commands
             const packageArg = runConfig.tree?.packageArgument;
             const packageArgString = (packageArg && (builtInCommand === 'link' || builtInCommand === 'unlink' || builtInCommand === 'updates'))
-                ? ` "${packageArg}"`
+                ? ` ${escapeShellArg(packageArg)}`
                 : '';
 
             // Add command-specific options
@@ -2442,22 +2457,22 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
                     commandSpecificOptions += ` --max-diff-bytes ${runConfig.commit.maxDiffBytes}`;
                 }
                 if (runConfig.commit?.direction) {
-                    commandSpecificOptions += ` --direction "${runConfig.commit.direction}"`;
+                    commandSpecificOptions += ` --direction ${escapeShellArg(runConfig.commit.direction)}`;
                 }
                 if (runConfig.commit?.context) {
-                    commandSpecificOptions += ` --context "${runConfig.commit.context}"`;
+                    commandSpecificOptions += ` --context ${escapeShellArg(runConfig.commit.context)}`;
                 }
                 // Push option can be boolean or string (remote name)
                 if (runConfig.commit?.push) {
                     if (typeof runConfig.commit.push === 'string') {
-                        commandSpecificOptions += ` --push "${runConfig.commit.push}"`;
+                        commandSpecificOptions += ` --push ${escapeShellArg(runConfig.commit.push)}`;
                     } else {
                         commandSpecificOptions += ' --push';
                     }
                 }
                 // Model-specific options for commit
                 if (runConfig.commit?.model) {
-                    commandSpecificOptions += ` --model "${runConfig.commit.model}"`;
+                    commandSpecificOptions += ` --model ${escapeShellArg(runConfig.commit.model)}`;
                 }
                 if (runConfig.commit?.openaiReasoning) {
                     commandSpecificOptions += ` --openai-reasoning ${runConfig.commit.openaiReasoning}`;
@@ -2482,16 +2497,16 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
                     commandSpecificOptions += ' --interactive';
                 }
                 if (runConfig.release?.from) {
-                    commandSpecificOptions += ` --from "${runConfig.release.from}"`;
+                    commandSpecificOptions += ` --from ${escapeShellArg(runConfig.release.from)}`;
                 }
                 if (runConfig.release?.to) {
-                    commandSpecificOptions += ` --to "${runConfig.release.to}"`;
+                    commandSpecificOptions += ` --to ${escapeShellArg(runConfig.release.to)}`;
                 }
                 if (runConfig.release?.focus) {
-                    commandSpecificOptions += ` --focus "${runConfig.release.focus}"`;
+                    commandSpecificOptions += ` --focus ${escapeShellArg(runConfig.release.focus)}`;
                 }
                 if (runConfig.release?.context) {
-                    commandSpecificOptions += ` --context "${runConfig.release.context}"`;
+                    commandSpecificOptions += ` --context ${escapeShellArg(runConfig.release.context)}`;
                 }
                 if (runConfig.release?.messageLimit) {
                     commandSpecificOptions += ` --message-limit ${runConfig.release.messageLimit}`;
@@ -2507,7 +2522,7 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
                 }
                 // Model-specific options for release
                 if (runConfig.release?.model) {
-                    commandSpecificOptions += ` --model "${runConfig.release.model}"`;
+                    commandSpecificOptions += ` --model ${escapeShellArg(runConfig.release.model)}`;
                 }
                 if (runConfig.release?.openaiReasoning) {
                     commandSpecificOptions += ` --openai-reasoning ${runConfig.release.openaiReasoning}`;
@@ -2539,7 +2554,7 @@ export const execute = async (runConfig: TreeExecutionConfig): Promise<string> =
 
             // Link/Unlink externals
             if ((builtInCommand === 'link' || builtInCommand === 'unlink') && runConfig.tree?.externals && runConfig.tree.externals.length > 0) {
-                commandSpecificOptions += ` --externals ${runConfig.tree.externals.join(' ')}`;
+                commandSpecificOptions += ` --externals ${runConfig.tree.externals.map(e => escapeShellArg(e)).join(' ')}`;
             }
 
             commandToRun = `kodrdriv ${builtInCommand}${optionsString}${packageArgString}${commandSpecificOptions}`;

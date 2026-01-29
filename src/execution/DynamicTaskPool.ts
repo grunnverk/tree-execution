@@ -66,7 +66,7 @@ export class DynamicTaskPool extends EventEmitter {
     private packageDurations = new Map<string, number>();
     private retryAttempts = new Map<string, number>();
     private publishedVersions: Array<{name: string, version: string, time: Date}> = [];
-    
+
     // Package execution contexts for isolation
     private packageContexts: Map<string, PackageExecutionContext>;
 
@@ -87,14 +87,14 @@ export class DynamicTaskPool extends EventEmitter {
 
         // Initialize state
         this.state = this.initializeState();
-        
+
         // Create isolated execution contexts for all packages
         const packages = Array.from(this.graph.packages.values()).map(pkg => ({
             name: pkg.name,
             path: pkg.path
         }));
         this.packageContexts = PackageContextFactory.createContexts(packages);
-        
+
         this.logger.debug(`Created ${this.packageContexts.size} isolated execution contexts`);
         this.packageContexts.forEach((ctx, name) => {
             this.logger.debug(`  ${name} → ${ctx.repositoryOwner}/${ctx.repositoryName}`);
@@ -129,12 +129,24 @@ export class DynamicTaskPool extends EventEmitter {
                     }
                 }
 
-                // Check if we're stuck
+                // If no tasks are running, check if we're done or stuck
                 if (this.runningTasks.size === 0) {
+                    // Update ready queue one more time to see if any packages became ready
+                    this.updateReadyQueue();
+
                     if (this.state.ready.length > 0) {
-                        throw new Error('Deadlock detected: packages ready but cannot execute');
+                        // Packages became ready, continue to schedule them
+                        continue;
                     }
-                    break; // No more work to do
+
+                    // No running tasks and no ready packages
+                    if (this.state.pending.length > 0) {
+                        // Still have pending packages but none are ready - deadlock
+                        throw new Error('Deadlock detected: pending packages exist but none are ready');
+                    }
+
+                    // No running, ready, or pending packages - we're done
+                    break;
                 }
 
                 // Wait for next package to complete
@@ -296,7 +308,8 @@ export class DynamicTaskPool extends EventEmitter {
         if (result.skippedNoChanges) {
             this.state.skippedNoChanges.push(packageName);
             const duration = this.packageDurations.get(packageName)!;
-            this.logger.info(`PACKAGE_SKIPPED_NO_CHANGES: Package skipped due to no code changes | Package: ${packageName} | Duration: ${this.formatDuration(duration)} | Reason: no-changes`);
+            const reason = result.skipReason || 'no-changes';
+            this.logger.info(`PACKAGE_SKIPPED_NO_CHANGES: Package skipped due to no code changes | Package: ${packageName} | Duration: ${this.formatDuration(duration)} | Reason: ${reason}`);
             this.emit('package:skipped-no-changes', { packageName, result });
         } else {
             this.state.completed.push(packageName);
