@@ -206,33 +206,33 @@ describe('Parallel Execution Context Isolation Integration', () => {
         it('should fix the original bug: kjerneverk packages using wrong repositories', () => {
             // This reproduces the exact bug scenario from the real monorepo
 
-            // Setup: Simulate @riotprompt/agentic and @riotprompt/execution
+            // Setup: Simulate @kjerneverk/agentic and @kjerneverk/execution
             execSync('git init', { cwd: testDir1 });
             execSync('git remote add origin git@github.com:kjerneverk/agentic.git', { cwd: testDir1 });
             writeFileSync(join(testDir1, 'package.json'), JSON.stringify({
-                name: '@riotprompt/agentic',
+                name: '@kjerneverk/agentic',
                 version: '0.0.21'
             }));
 
             execSync('git init', { cwd: testDir2 });
             execSync('git remote add origin git@github.com:kjerneverk/execution-openai.git', { cwd: testDir2 });
             writeFileSync(join(testDir2, 'package.json'), JSON.stringify({
-                name: '@riotprompt/execution',
+                name: '@kjerneverk/execution',
                 version: '0.0.21'
             }));
 
             // Create graph
             const packages = new Map<string, PackageInfo>([
-                ['@riotprompt/agentic', {
-                    name: '@riotprompt/agentic',
+                ['@kjerneverk/agentic', {
+                    name: '@kjerneverk/agentic',
                     version: '0.0.21',
                     path: testDir1,
                     dependencies: [],
                     devDependencies: [],
                     peerDependencies: []
                 }],
-                ['@riotprompt/execution', {
-                    name: '@riotprompt/execution',
+                ['@kjerneverk/execution', {
+                    name: '@kjerneverk/execution',
                     version: '0.0.21',
                     path: testDir2,
                     dependencies: [],
@@ -244,10 +244,10 @@ describe('Parallel Execution Context Isolation Integration', () => {
             const graph: DependencyGraph = {
                 packages,
                 edges: new Map([
-                    ['@riotprompt/agentic', new Set()],
-                    ['@riotprompt/execution', new Set()],
+                    ['@kjerneverk/agentic', new Set()],
+                    ['@kjerneverk/execution', new Set()],
                 ]),
-                buildOrder: ['@riotprompt/agentic', '@riotprompt/execution']
+                buildOrder: ['@kjerneverk/agentic', '@kjerneverk/execution']
             };
 
             // Create pool
@@ -262,13 +262,13 @@ describe('Parallel Execution Context Isolation Integration', () => {
             const contexts = (pool as any).packageContexts;
 
             // THE FIX: Each package should have its own repository
-            const agenticCtx = contexts.get('@riotprompt/agentic');
+            const agenticCtx = contexts.get('@kjerneverk/agentic');
             expect(agenticCtx).toBeDefined();
             expect(agenticCtx.repositoryName).toBe('agentic');
             expect(agenticCtx.repositoryOwner).toBe('kjerneverk');
             expect(agenticCtx.repositoryUrl).toBe('https://github.com/kjerneverk/agentic');
 
-            const executionCtx = contexts.get('@riotprompt/execution');
+            const executionCtx = contexts.get('@kjerneverk/execution');
             expect(executionCtx).toBeDefined();
             expect(executionCtx.repositoryName).toBe('execution-openai');
             expect(executionCtx.repositoryOwner).toBe('kjerneverk');

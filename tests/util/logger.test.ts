@@ -25,27 +25,36 @@ describe('Logger', () => {
         });
 
         it('should call console.log for info', () => {
+            const originalEnv = process.env.KODRDRIV_MCP_SERVER;
+            delete process.env.KODRDRIV_MCP_SERVER;
             console.log = vi.fn();
             const logger = getLogger();
             logger.info('test message');
             expect(console.log).toHaveBeenCalledWith('test message');
             console.log = originalConsoleLog;
+            if (originalEnv !== undefined) process.env.KODRDRIV_MCP_SERVER = originalEnv;
         });
 
         it('should call console.error for error', () => {
+            const originalEnv = process.env.KODRDRIV_MCP_SERVER;
+            delete process.env.KODRDRIV_MCP_SERVER;
             console.error = vi.fn();
             const logger = getLogger();
             logger.error('error message');
             expect(console.error).toHaveBeenCalledWith('error message');
             console.error = originalConsoleError;
+            if (originalEnv !== undefined) process.env.KODRDRIV_MCP_SERVER = originalEnv;
         });
 
         it('should call console.warn for warn', () => {
+            const originalEnv = process.env.KODRDRIV_MCP_SERVER;
+            delete process.env.KODRDRIV_MCP_SERVER;
             console.warn = vi.fn();
             const logger = getLogger();
             logger.warn('warning message');
             expect(console.warn).toHaveBeenCalledWith('warning message');
             console.warn = originalConsoleWarn;
+            if (originalEnv !== undefined) process.env.KODRDRIV_MCP_SERVER = originalEnv;
         });
 
         it('should be no-op for verbose', () => {
