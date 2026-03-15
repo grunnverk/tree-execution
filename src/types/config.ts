@@ -16,6 +16,7 @@ export interface TreeExecutionConfig {
     // Directories
     contextDirectories?: string[];
     outputDirectory?: string;
+    runtimeLogDirectory?: string;
     preferencesDirectory?: string;
     configDirectory?: string;
 

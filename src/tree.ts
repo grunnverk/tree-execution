@@ -26,13 +26,14 @@
  *   - Shows basic execution flow
  *
  * No flags:
- *   - For commit and publish commands: Shows full output from child processes by default
- *     (including AI generation, self-reflection, and agentic interactions)
+ *   - For commit and publish commands: Shows minimal command-level progress by default
+ *     (full child-process output is available in runtime logs)
  *   - For other commands: Shows basic progress with numeric representation ([1/5] Package: Running...)
  *   - Shows level-by-level execution summaries
  *   - Shows completion status for each package and level
  */
 import path from 'path';
+import os from 'os';
 import fs from 'fs/promises';
 import child_process, { exec } from 'child_process';
 import { run, runSecure, safeJsonParse, validatePackageJson, getGitStatusSummary, getGloballyLinkedPackages, getLinkedDependencies, getLinkCompatibilityProblems } from '@grunnverk/git-tools';
@@ -61,6 +62,10 @@ import {
     optimizePrecommitCommand,
     recordTestRun
 } from './util/treeUtils.js';
+import {
+    createFailureHandoffPrompt,
+    formatFailureHandoffBlock
+} from './util/outputContract.js';
 
 // Built-in commands - using stubs for now
 // TODO: Refactor to use callbacks/dependency injection
@@ -69,12 +74,55 @@ import { escapeShellArg } from './util/shellEscape.js';
 
 // Define constants locally
 const DEFAULT_OUTPUT_DIRECTORY = 'output/kodrdriv';
+const DEFAULT_RUNTIME_LOG_DIRECTORY = path.join(os.homedir(), '.kodrdriv', 'log');
+
+const resolveRuntimeLogDirectory = (runConfig: TreeExecutionConfig, packageDir: string): string => {
+    if (!runConfig.runtimeLogDirectory) {
+        return DEFAULT_RUNTIME_LOG_DIRECTORY;
+    }
+    return path.isAbsolute(runConfig.runtimeLogDirectory)
+        ? runConfig.runtimeLogDirectory
+        : path.join(packageDir, runConfig.runtimeLogDirectory);
+};
+
+export const determineShowOutputLevel = (
+    runConfig: TreeExecutionConfig,
+    isBuiltInCommand: boolean,
+    commandToRun: string
+): 'none' | 'minimal' | 'full' => {
+    if (runConfig.debug) {
+        return 'full';
+    }
+    if (runConfig.verbose) {
+        return 'minimal';
+    }
+
+    // Human-first default: keep normal output concise, but still provide progress
+    // for long-running commit/publish workflows.
+    const isPublishCommand = isBuiltInCommand && commandToRun.includes('publish');
+    const isCommitCommand = isBuiltInCommand && commandToRun.includes('commit');
+    if (isPublishCommand || isCommitCommand) {
+        return 'minimal';
+    }
+
+    return 'none';
+};
 
 // Track published versions during tree publish
 interface PublishedVersion {
     packageName: string;
     version: string;
     publishTime: Date;
+}
+
+interface RuntimeRunManifest {
+    runId: string;
+    command: string;
+    packageName: string;
+    packageDir: string;
+    phase: string;
+    logFilePath: string;
+    generatedAt: string;
 }
 
 // Tree execution context for persistence
@@ -281,6 +329,20 @@ const updateScopedDependencies = async (
     } catch (error: any) {
         packageLogger.warn(`Failed to detect scoped dependencies: ${error.message}`);
         return false;
+    }
+};
+
+const writeRunManifest = async (
+    manifestPath: string,
+    manifest: RuntimeRunManifest,
+    logger: any
+): Promise<void> => {
+    try {
+        const manifestDir = path.dirname(manifestPath);
+        await fs.mkdir(manifestDir, { recursive: true });
+        await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf-8');
+    } catch (error: any) {
+        logger.warn(`Failed to write run manifest ${manifestPath}: ${error.message}`);
     }
 };
 
@@ -735,24 +797,35 @@ export const executePackage = async (
 
     // Create log file path for publish commands
     let logFilePath: string | undefined;
+    let runId: string | undefined;
+    let manifestFilePath: string | undefined;
     if (isBuiltInCommand && commandToRun.includes('publish')) {
-        const outputDir = runConfig.outputDirectory || 'output/kodrdriv';
         const timestamp = new Date().toISOString().replace(/[:.]/g, '-').replace('T', '_').split('.')[0];
         const commandName = commandToRun.split(' ')[1]?.split(' ')[0] || 'command';
-        logFilePath = path.join(packageDir, outputDir, `${commandName}_${timestamp}.log`);
+        runId = `${commandName}_${timestamp}`;
+        const runtimeLogDir = resolveRuntimeLogDirectory(runConfig, packageDir);
+        logFilePath = path.join(runtimeLogDir, `${runId}.log`);
+        manifestFilePath = path.join(runtimeLogDir, `${runId}.manifest.json`);
+
+        await writeRunManifest(
+            manifestFilePath,
+            {
+                runId,
+                command: commandToRun,
+                packageName,
+                packageDir,
+                phase: 'package-execution',
+                logFilePath,
+                generatedAt: new Date().toISOString()
+            },
+            packageLogger
+        );
     }
 
-    // Determine output level based on flags
-    // For publish and commit commands, default to full output to show AI progress and other details
-    // For other commands, require --verbose or --debug for output
+    // Determine output level based on flags and command type
     const isPublishCommand = isBuiltInCommand && commandToRun.includes('publish');
     const isCommitCommand = isBuiltInCommand && commandToRun.includes('commit');
-    let showOutput: 'none' | 'minimal' | 'full' = (isPublishCommand || isCommitCommand) ? 'full' : 'none';
-    if (runConfig.debug) {
-        showOutput = 'full';
-    } else if (runConfig.verbose) {
-        showOutput = 'minimal';
-    }
+    const showOutput = determineShowOutputLevel(runConfig, isBuiltInCommand, commandToRun);
 
     // Show package start info - always visible for progress tracking
     if (runConfig.debug) {
@@ -1167,6 +1240,26 @@ export const executePackage = async (
                     logger.error(`   ... and ${stderrLines.length - 10} more error lines (use --verbose to see full output)`);
                 }
             }
+        }
+
+        if (logFilePath && runId && !runConfig.debug && !runConfig.verbose) {
+            const handoffLines = formatFailureHandoffBlock({
+                runId,
+                command: commandToRun,
+                failingPackage: packageName,
+                phase: 'package-execution',
+                primaryLogPath: logFilePath,
+                relatedLogPaths: manifestFilePath ? [manifestFilePath] : [],
+                suggestedPrompt: createFailureHandoffPrompt(runId, logFilePath, packageName),
+                remediation: [
+                    'Read the manifest first to confirm package/phase context',
+                    'Inspect stderr section in the run log for root cause',
+                    'Re-run with --debug only if log context is insufficient'
+                ],
+                escalation: 'If unresolved after one retry, hand off with run_id and log_path to an operator.'
+            });
+            logger.error('');
+            handoffLines.forEach(line => logger.error(line));
         }
 
         // Check if this is a timeout error
